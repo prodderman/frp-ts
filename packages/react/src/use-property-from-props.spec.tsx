@@ -30,6 +30,24 @@ describe('usePropertyFromProps', () => {
 		tree.rerender(<Test value={2} onProperty={onProperty} />)
 		expect(cb).toHaveBeenCalledTimes(1)
 	})
+	it('syncs property value with the value from props during render', () => {
+		interface ComponentProps<T> {
+			readonly value: T
+			readonly onRender: (valueFromProps: T, property: Property<T>) => void
+		}
+
+		function Component<T>(props: ComponentProps<T>) {
+			const property = usePropertyFromProps(props.value)
+			props.onRender(props.value, property)
+			return <></>
+		}
+
+		const onRender = (valueFromProps: number, property: Property<number>) =>
+			expect(valueFromProps).toBe(property.get())
+		const tree = render(<Component value={1} onRender={onRender} />)
+		tree.rerender(<Component value={2} onRender={onRender} />)
+		tree.rerender(<Component value={3} onRender={onRender} />)
+	})
 	it('renders without errors with child consumer', () => {
 		jest.spyOn(console, 'error').mockImplementation()
 
